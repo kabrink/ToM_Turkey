@@ -1,0 +1,301 @@
+---
+title: "ToM_Turkey"
+author: "Kimberly A. Brink"
+date: "January 7, 2016"
+output: html_document
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, fig.width=16)
+```
+
+```{r install_libraries, echo = FALSE}
+library(Hmisc)
+library(gmodels)
+library(pgirmess)
+library(car)
+library(aod)
+```
+
+#SPSS Syntax
+  
+```{r load_data, echo=FALSE}
+filename="/Users/kabrink/Dropbox/Research/Projects/ToM Turkey/Syntax/ToM_Turkey/parentrearedTurkishchildren_withsiblinginfo.sav"
+filename="/Users/kabrink/Downloads/parentrearedTurkishchildren_withsiblinginfo.sav"
+ToM.T <- spss.get(filename)
+```
+  
+#Results
+Associations between demographic variables and ToM score. Table 2 shows both zero order correlations between demographic variables and total ToM scale score and partial correlations controlling for age. As in prior research (e.g., Wellman & Liu 2004; Wellman, Fang, & Peterson, 2011), children's ToM scale scores increased with age (r = .46, p < .01), which supports the measurement validity of our translated scale. Similar to other translations of the ToM scale, our Turkish scale provides a cross-sectional picture of the sequence of progressive insights that children achieve as they get older.
+
+```{r cor_ToM_age}
+cor.test(ToM5tasks, age)
+```
+
+Before age was controlled in partial correlations, only number of younger siblings was significantly related with ToM score (r = .19, p < .01). When age was accounted for, ToM score was not found to be significantly correlated with number of younger (r = .11, ns) and older siblings (r = -.07, ns) or SES (r = .06, ns) but was negatively associated with number of older individuals at home (r = -.19, p < .01).
+
+```{r part_cor_function, echo = FALSE}
+#runs a partial correlation that can handle missing values
+part.cor <- function(x, y, z){
+  xres <- residuals(lm(x ~ z, na.action = na.exclude))
+  yres <- residuals(lm(y ~ z, na.action = na.exclude)) 
+  result <- cor.test(xres, yres) 
+  m = ToM.T.frame(1)
+  m$estimate = result$estimate 
+  m$tvalue = result$statistic 
+  m$df = result$parameter
+  m$p.value = result$p.value
+  return(m)
+}
+```
+
+```{r pcor_ToM}
+cor.test(ToM.T$ToM5tasks, noofyoungersib, data=ToM.T)
+part.cor(ToM5tasks, noofyoungersib, age, data=ToM.T) 
+part.cor(ToM5tasks, noofoldersib, age, data=ToM.T) 
+part.cor(ToM5tasks, ses, age, data=ToM.T)
+part.cor(ToM5tasks, numofoldpeop, age, data=ToM.T) 
+```
+
+Despite no existing age difference between girls (M = 53.81, SD = 10.13) and boys (M = 52.94, SD = 10.61), p > .05, between-group comparison revealed a significant gender difference in ToM score, F (1, 258) = 4.06, p < .05, ƞ2 = .02, with girls (M = 3.04, SD = 1.17) performing higher than boys (M = 2.76, SD = 1.11).
+  
+```{r gender}
+t.test(age~gender,data=ToM.T,var.equal=TRUE)
+summary(aov(ToM5tasks~gender,data=ToM.T))
+aggregate(ToM5tasks~gender, ToM.T, mean)
+```
+
+Predictors of ToM Score. Amid this large dataset, several results stand out that are relevant to ToM in a cultural context. In order to further examine the contribution of each variable to the ToM score, we carried out hierarchical regression analyses that allow us to control for shared variance between variables and estimate the unique contribution of each variable to the progression of ToM scores. Because age, gender and number of older individuals at home were associated with ToM scale scores, they were entered into a three-step regression analysis to investigate their independent contributions to the ToM outcome (see Table 3). SES and number of older and younger siblings were not included in the regression analysis and not further analyzed as they were not related to ToM score when age was accounted for. 
+
+Age was introduced in the first step of the regression equation and significantly predicted ToM scale performance (R2 = .19, F (1, 209) = 50.17, p < .001). Gender was entered in the second step but did not predict ToM score when age was controlled (R2 = .21,  Fchange (1, 208) = 2.92 , ns). Lastly in the third step, number of older individuals at home further predicted ToM scores of children (R2 = .24,  Fchange (1, 207) = 8.48 , p < .01).
+  
+```{r regression}
+#listwise deletion
+ToM.T_red = subset(ToM.T, select=c(ToM5tasks,age,gender,numofoldpeop))
+ToM.T_red = na.omit(ToM.T_red)
+fit1 <- lm(ToM5tasks ~ age, ToM.T_red)
+fit2 <- lm(ToM5tasks ~ age + gender, ToM.T_red)
+fit3 <- lm(ToM5tasks ~ age + gender + numofoldpeop, ToM.T_red)
+
+summary(fit1)
+anova(fit1,fit2)
+anova(fit2, fit3)
+```
+
+Predictors of acquisition order. From prior research it is clear that children proceed through the ToM Scale items in consistent sequences. Specifically, there are two consistent sequences that have appeared cross-culturally. We found that on average the Turkish data more closely resembles the pattern found in prior work with Chinese and Iranian children: DD > KA > DB > FB > HE, rather than that found in children from western, individualistic countries: DD > DB > KA > FB > HE. As seen in Table 4, children in our sample found KA questions easier than DB questions (KA > DB) and thus significantly more children passed the KA item compared to the DB item, χ2 (1, N = 260) = 13.25, p < .001). This collectivistic pattern of ToM acquisition was in clear contrast to the one seen in U.S and Australia where number of correct responses for DB questions were higher than KA questions (DB > KA).  Because in collectivistic cultures there is less emphasis on expressing diverse beliefs and more emphasis on consensual knowledge important to all community members, this may very well account for the Turkish children’s relatively slower acquisition of diverse beliefs relative to knowledge.
+  
+```{r npar_test}
+knowaccess_num = ifelse(knowaccess=='wrong',0,1)
+diversebelief_num = ifelse(diversebelief=='wrong',0,1)
+table(knowaccess_num,diversebelief_num)
+mcnemar.test(knowaccess_num,diversebelief_num, correct=TRUE)
+```
+
+Although sequence in ToM acquisition represented a collectivistic pattern overall, there were considerable numbers of children who exhibited the individualistic pattern in mental state understanding. In total, 35 children evidenced DB > KA –the individualistic pattern—a sufficient minority for comparing with the 74 children who exhibited KA > DB –the collectivistic pattern. (The other children either got both DB and KA correct or both incorrect.) Thus, in order to understand within-culture differences in acquisition of ToM, the 109 children representing these two different acquisition patterns were compared in terms of their demographic characteristics such as age, gender, number of older and younger siblings, number of older individuals at home and family SES. 
+
+
+The total ToM scale performance of the two groups were not different from one another, such that children showing the collectivistic KA > DB acquisition pattern  (M = 2.41, SD = 0.74) performed similarly to children showing the individualistic DB > KA acquisition pattern (M = 2.37, SD = 0.77), t (107) = 0.22,  p > .05. This suggests that differences between the groups exists only in ToM acquisition order rather than overall performance in mental state understanding. When compared in terms of demographic characteristics, the two groups did not differ in gender, χ2 (1, N = 109) = 0.102, p > .05 but did differ in age. Children showing the KA > DB collectivistic ToM acquisition pattern were on average older (M = 53.43, SD = 9.30) than those showing DB > KA individualistic pattern (M = 46.40, SD = 10.43), t (107) = 3.54, p < .01. Controlling for this difference in age, group comparisons revealed that the KA>DB group had fewer (M=   ) older individuals at home, F (1, 82) = 5.48, p < .05, ƞ2 = .06, than DB > KA group (M=    ). However, there was no difference in number of older siblings, F (1, 82) = 1.83, p > .05, ƞ2 = .02 or number of younger siblings F (1, 82) = 0.21, p > .05, ƞ2 = .003) between the groups. Lastly, SES levels of families differed in these two groups, χ2 (2, N = 90) = 5.809, p = .055, such that children in DB > KA group came mostly from middle SES families whereas there were children in KA < DB group came from both low and high SES families. 
+
+```{r acquisition_pattern}
+t.test(ToM5tasks ~ acqpatt,var.equal=TRUE)
+t.test(age ~ acqpatt,var.equal=TRUE)
+chisq.test(table(gender, acqpatt), correct = FALSE)
+sum(table(gender,acqpatt))
+
+aggregate(numofoldpeop~acqpatt,mean,data=ToM.T)
+
+anova(lm(numofoldpeop ~ age + acqpatt))
+anova(lm(noofoldersib ~ age + acqpatt))
+anova(lm(noofyoungersib ~ age + acqpatt))
+#Check that this compares to SPSS
+chisq.test(table(ses3,acqpatt))
+```
+
+In order to estimate the independent contributions of age, number of older individuals at home and SES to ToM acquisition order, we used logistic regression (with the DV reflecting either KA>DB or DB>KA response). The individualistic acquisition pattern (DB > KA) was dummy coded as 1 whereas collectivistic pattern was coded as 0 to score the outcome patterns of interest. Since gender and number of older and younger siblings were similar in the two groups, they were not further analyzed in this regression. The logistic regression model was significant, meaning that the set of predictors entered reliably distinguished an individualistic acquisition pattern in ToM understanding from a collectivistic acquisition pattern, χ2 (4, N = 84) = 18.34, p < .01. The Wald criterion demonstrated that age was negatively related with DB > KA acquisition order, p < .05 and the Exp (B) value indicated that one unit of decrease in age (in months) made the odds of being in DB > KA group .92 times more likely, Exp (B) = .92, 95% CI = [.85, .98]. In contrast, number of older individuals at home was significantly, positively related with DB > KA acquisition order asits  fit with the Wald criterion was, p < .05, and the number of adults at home increased the odds of being in DB > KA group 1.79 times,for each additional adult at home, Exp (B) = 1.79, 95% CI = [1.12, 2.85]. With these other factors entered into the regression, SES no longer contributed to predicting acquisition order--non-significant Wald criterion, p > .05, and Exp (B) = .85, 95% CI = [.39, 1.82]. In sum, the key factors that predicted ToM acquisition order were the child’s age and number of older individuals at home, and although number of older individuals at home was related to SES, SES itself did not predict the key (collectivist-individualist) difference in ToM pattern. 
+
+```{r logistic_regression}
+#Check that this compares to SPSS
+logit <- glm(acpat.dum ~ age + numofoldpeop + ses3, family = binomial(logit))
+summary(logit)
+exp(confint(logit))
+exp(coefficients(logit))
+wald.test(b = coef(logit), Sigma = vcov(logit), Terms = 4:5)
+with(logit, null.deviance - deviance)
+with(logit, df.null - df.residual)
+with(logit, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
+```
+
+```{r logistic_regression2}
+#Check that this compares to SPSS
+logit <- glm(acpat.dum ~ age + numofoldpeop, family = binomial(logit))
+summary(logit)
+exp(confint(logit))
+exp(coefficients(logit))
+with(logit, null.deviance - deviance)
+with(logit, df.null - df.residual)
+with(logit, pchisq(null.deviance - deviance, df.null - df.residual, lower.tail = FALSE))
+```
+
+##Manuscript Revisions
+```{r guttman}
+table(c(acqpatt,diversedesire,knowaccess,diversebelief,explicitfb,realappemotion))
+
+table(acqpatt,diversedesire)
+
+acqpatt1 = ToM.T[ToM.T$acqpatt==1,]
+mean(acqpatt1$diversedesire=='true',na.rm=TRUE)
+mean(acqpatt1$knowaccess=='true',na.rm=TRUE)
+mean(acqpatt1$diversebelief=='true',na.rm=TRUE)
+mean(acqpatt1$explicitfb=='true',na.rm=TRUE)
+mean(acqpatt1$realappemotion=='true',na.rm=TRUE)
+
+acqpatt2 = ToM.T[ToM.T$acqpatt==2,]
+mean(acqpatt2$diversedesire=='true',na.rm=TRUE)
+mean(acqpatt2$knowaccess=='true',na.rm=TRUE)
+mean(acqpatt2$diversebelief=='true',na.rm=TRUE)
+mean(acqpatt2$explicitfb=='true',na.rm=TRUE)
+mean(acqpatt2$realappemotion=='true',na.rm=TRUE)
+
+acqpatt1 = ToM.T[(ToM.T$diversedesire=='wrong'&
+                    ToM.T$diversebelief=='wrong'&
+                    ToM.T$knowaccess=='wrong'&
+                    ToM.T$contentsfb=='wrong'&
+                    ToM.T$realappemotion=='wrong'),]
+acqpatt2 = ToM.T[(ToM.T$diversedesire=='true'&
+                    ToM.T$diversebelief=='wrong'&
+                    ToM.T$knowaccess=='wrong'&
+                    ToM.T$contentsfb=='wrong'&
+                    ToM.T$realappemotion=='wrong'),]
+acqpatt3a = ToM.T[(ToM.T$diversedesire=='true'&
+                    ToM.T$diversebelief=='true'&
+                    ToM.T$knowaccess=='wrong'&
+                    ToM.T$contentsfb=='wrong'&
+                    ToM.T$realappemotion=='wrong'),]
+acqpatt3b = ToM.T[(ToM.T$diversedesire=='true'&
+                    ToM.T$diversebelief=='wrong'&
+                    ToM.T$knowaccess=='true'&
+                    ToM.T$contentsfb=='wrong'&
+                    ToM.T$realappemotion=='wrong'),]
+acqpatt4 = ToM.T[(ToM.T$diversedesire=='true'&
+                    ToM.T$diversebelief=='true'&
+                    ToM.T$knowaccess=='true'&
+                    ToM.T$contentsfb=='wrong'&
+                    ToM.T$realappemotion=='wrong'),]
+acqpatt4 = ToM.T[(ToM.T$diversedesire=='true'&
+                    ToM.T$diversebelief=='true'&
+                    ToM.T$knowaccess=='true'&
+                    ToM.T$contentsfb=='true'&
+                    ToM.T$realappemotion=='wrong'),]
+acqpatt5 = ToM.T[(ToM.T$diversedesire=='true'&
+                    ToM.T$diversebelief=='true'&
+                    ToM.T$knowaccess=='true'&
+                    ToM.T$contentsfb=='true'&
+                    ToM.T$realappemotion=='true'),]
+
+dim(acqpatt1)
+dim(acqpatt2)
+dim(acqpatt3a)
+dim(acqpatt3b)
+dim(acqpatt4)
+dim(acqpatt5)
+```
+
+```{r guttman}
+#I have no idea how to interpret this output
+library(sirt)
+gutt = prob.guttman(ToM.T[,c('diversedesire','knowaccess','diversebelief','contentsfb','realappemotion.rescored')])
+
+#green's coefficient of reproducibility (1956)
+```
+
+
+```{r iita}
+#Inductive item tree analysis
+library(DAKS)
+ToM.scale = ToM.T[,c('diversedesire','knowaccess','diversebelief','contentsfb','realappemotion.rescored')]
+
+#10 largest response patterns in the data:
+pat = pattern(ToM.scale, n = 10)
+
+#adding up all kids that fit into the potential orders
+(9+11+21+33+71+23+14)/length(ToM.scale$diversedesire)
+
+(9+11+33+71+23+14)/length(ToM.scale$diversedesire) #knowaccessfirst
+(9+11+21+71+23+14)/length(ToM.scale$diversedesire) #knowaccesssecond
+
+#sum(pat$response.patterns)
+#sum(pat$response.patterns)/length(ToM.scale$diversedesire)
+apply(ToM.scale, 2, table)
+
+# Since we do not know whether the underlying quasi order may or may not be a chain, we next perform IITA analyses of the data
+mini <- iita(ToM.scale, v = 1)
+corr <- iita(ToM.scale, v = 2)
+orig <- iita(ToM.scale, v = 3)
+
+summary(mini)
+summary(corr)
+summary(orig)
+
+#We additionally present the inductively generated selection set of competing quasi orders, because that helps investigating the results obtained from applying the IITA algorithms
+sel_set <- ind_gen(ob_counter(ToM.scale))
+sel_set
+
+#The quasi order with 8th index in the selection set is a chain, that is, the items form a Guttman scale. This is the chain for the knowaccess order
+
+#The quasi order with 7th index in the selection set is the chain for the knowaccess and diversebeliefs not predicitng each other
+
+set_is_proper_subset(mini$implications,sel_set[[7]]) #the quasi order is a subset of the two orders
+set_is_proper_subset(mini$implications,sel_set[[8]]) #the quasi order is a subset of the two orders
+
+hasse(mini$implications,5)
+hasse(sel_set[[7]],5)
+
+#
+ z_test(ToM.scale, sel_set[[8]], sel_set[[5]], alternative = "less", v = 1) #mini corrected
+ z_test(ToM.scale, sel_set[[8]], sel_set[[5]], alternative = "less", v = 2) #corrected
+ 
+ alt.order = list(tuple(1L, 2L), tuple(1L, 3L), tuple(1L, 4L), tuple(1L, 5L), tuple(2L, 4L), tuple(2L, 5L), tuple(3L, 2L), tuple(3L, 4L), tuple(3L, 5L), tuple(4L, 5L))
+
+hasse(alt.order,5)
+
+z_test(ToM.scale, alt.order, v = 1) #corrected
+z_test(ToM.scale, sel_set[[8]], v = 1) #corrected
+z_test(ToM.scale, sel_set[[7]], v = 1) #corrected
+
+```
+
+```{r mRm}
+#I'm pretty sure this is what we want to do to identify multiple rasch models, but I get weird results
+library(mRm)
+ToM.scale = ToM.T[,c('diversedesire','knowaccess','diversebelief','contentsfb','realappemotion.rescored')]
+mrm.mod = mrm(ToM.scale, cl=2, max.it = 10000, conv.crit = .0001)
+summary(mrm.mod)
+plot(mrm.mod)
+```
+
+```{r mixRasch}
+#pretty much only gives me results for one type of rasch model
+library(mixRasch)
+mr.mod = mixRasch(ToM.scale, steps = 1, max.iter = 1000000, conv.crit = 0.001, model = "RSM", n.c = 2)
+summary(mr.mod)
+```
+
+```{r raschtree}
+#can be used to identify which predictors predict the difference in difficulty between the two rasch models
+library(psychotree)
+
+#You can bring the data into more convenient format by first defining a new variable resp that contains the matrix of item responses
+ToM.rt <- ToM.T
+ToM.rt <- ToM.T[,-c(3:64)]
+ToM.rt$resp <- as.matrix(ToM.scale)
+ToM.rt$numofoldpeop <- ToM.T$numofoldpeop
+ToM.rt$age <- ToM.T$age
+ToM.rt$gender <- ToM.T$gender
+ToM.rt$ses3 <- ToM.T$ses3
+ToM.rt <- ToM.rt[,-c(1:2)]
+
+#If the item responses include cases where all observed item responses are 0 or all observed item responses are 1, these cases need to be excluded prior to model fitting.
+ToM.rt <- subset(ToM.rt, rowMeans(resp, na.rm = TRUE) > 0 & rowMeans(resp, na.rm = TRUE) < 1)
+
+rt <- raschtree(resp~gender, data = ToM.rt)
+plot(rt)
+```
