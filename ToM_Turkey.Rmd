@@ -275,7 +275,7 @@ z_test(ToM.scale, sel_set[[7]], v = 1) #corrected
 #I'm pretty sure this is what we want to do to identify multiple rasch models, but I get weird results
 library(mRm)
 #ToM.scale = ToM.T[,c('diversedesire','knowaccess','diversebelief','contentsfb','realappemotion.rescored')]
-mrm.mod = mrm(ToM.scale, cl=3, max.it = 10000, conv.crit = .00001)
+mrm.mod = mrm(ToM.scale, cl=1, max.it = 10000, conv.crit = .00001)
 summary(mrm.mod)
 plot(mrm.mod)
 ```
@@ -283,8 +283,8 @@ plot(mrm.mod)
 ```{r mixRasch}
 #pretty much only gives me results for one type of rasch model
 library(mixRasch)
-mr.mod = mixRasch(ToM.scale, steps = 1, max.iter = 1000000, conv.crit = 0.00001, model = "RSM", n.c = 2)
-summary(mr.mod)
+mr.mod = mixRasch(ToM.scale, steps = 1, max.iter = 1000000, conv.crit = 0.00001, model = "RSM", n.c = 1)
+mr.mod
 ```
 
 ```{r raschtree}
@@ -306,4 +306,17 @@ ToM.rt <- subset(ToM.rt, rowMeans(resp, na.rm = TRUE) > 0 & rowMeans(resp, na.rm
 
 rt <- raschtree(resp~numofoldpeop+age, data = ToM.rt)
 plot(rt)
+```
+
+```{r 1d_rasch}
+#As we talked last time, I’d like to see the measures of fit for the 1 dimensional Rasch. Should be both measures of Infit and Outfit.  (You can see the original Wellman & Liu 2004 to see what I’m hoping for.)
+
+library(eRm)
+rasch.mod = RM(ToM.scale)
+
+library(mirt)
+rasch.mod = mirt(ToM.scale, 1)
+summary(rasch.mod)
+coef(rasch.mod)
+itemfit(rasch.mod)
 ```
