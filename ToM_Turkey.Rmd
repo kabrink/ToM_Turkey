@@ -19,8 +19,9 @@ library(aod)
 #SPSS Syntax
   
 ```{r load_data, echo=FALSE}
-filename="/Users/kabrink/Dropbox/Research/Projects/ToM Turkey/Syntax/ToM_Turkey/parentrearedTurkishchildren_withsiblinginfo.sav"
-filename="/Users/kabrink/Downloads/parentrearedTurkishchildren_withsiblinginfo.sav"
+filename="/Users/kabrink/Dropbox/Research/Michigan/ToM Turkey/Data/parentrearedTurkishchildren_withsiblinginfo.sav"
+
+#filename="/Users/kabrink/Downloads/parentrearedTurkishchildren_withsiblinginfo.sav"
 ToM.T <- spss.get(filename)
 ```
   
@@ -320,3 +321,39 @@ summary(rasch.mod)
 coef(rasch.mod)
 itemfit(rasch.mod)
 ```
+
+```{r remaining_patterns}
+ToM.scale = ToM.T[,c('diversedesire','knowaccess','diversebelief','contentsfb','realappemotion.rescored')]
+ToM.scale = as.data.frame(ifelse(ToM.scale=='true'|ToM.scale==1,1,0))
+
+ToM.rpat = ToM.scale[-which(ToM.scale$diversedesire==1&ToM.scale$knowaccess==0&ToM.scale$diversebelief==0&ToM.scale$contentsfb==0&ToM.scale$realappemotion.rescored==0),]
+ToM.rpat = ToM.rpat[-which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),]
+ToM.rpat = ToM.rpat[-which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),]
+ToM.rpat = ToM.rpat[-which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==0),]
+ToM.rpat = ToM.rpat[-which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==1),]
+ToM.rpat = ToM.rpat[-which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),]
+ToM.rpat =  ToM.rpat[-which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),]
+
+pat1 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==1),])
+pat2 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),])
+pat3 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),])
+pat4 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==1),])
+pat5 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==0),])
+pat6 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==0),])
+pat7 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==1),])
+pat8 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==0),])
+pat9 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==0&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==1),])
+pat10 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==1),])
+pat11 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==0),])
+pat12 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==0&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==1),])
+pat13 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==1),])
+pat14 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==0&ToM.rpat$contentsfb==1&ToM.rpat$realappemotion.rescored==0),])
+pat15 =  dim(ToM.rpat[which(ToM.rpat$diversedesire==1&ToM.rpat$knowaccess==1&ToM.rpat$diversebelief==1&ToM.rpat$contentsfb==0&ToM.rpat$realappemotion.rescored==1),])
+
+
+#pat14 (1,1,0,1,0): 11
+#pat15 (1,1,1,0,1): 15
+#pat3 (0,1,0,0,0): 13
+
+```
+
