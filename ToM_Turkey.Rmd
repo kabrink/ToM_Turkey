@@ -199,17 +199,49 @@ dim(acqpatt4)
 dim(acqpatt5)
 ```
 
-```{r guttman_2-}
-#I have no idea how to interpret this output
+```{r guttman_analysis}
 library(sirt)
 
 ToM.gutt = ToM.T[,c('diversedesire','knowaccess','diversebelief','contentsfb','realappemotion.rescored')]
-ToM.gutt = ifelse(ToM.gutt=='true'|ToM.gutt==1,1,0)
-gutt = prob.guttman(ToM.gutt)
+ToM.gutt = as.data.frame(ifelse(ToM.gutt=='true'|ToM.gutt==1,1,0))
+gutt.mod = prob.guttman(ToM.gutt)
+summary(gutt.mod)
 
 #green's coefficient of reproducibility (1956)
+
+#sum the number respondents with positive responses for each item
+apply(ToM.gutt, 2, sum)
+
+#sum the number of respondents who got item g+1 correct and g incorrect, where g = 1,...,k-1
+sum(ifelse(ToM.gutt$knowaccess==1&ToM.gutt$diversedesire==0,1,0))
+sum(ifelse(ToM.gutt$diversebelief==1&ToM.gutt$knowaccess==0,1,0))
+sum(ifelse(ToM.gutt$contentsfb==1&ToM.gutt$diversebelief==0,1,0))
+sum(ifelse(ToM.gutt$realappemotion.rescored==1&ToM.gutt$contentsfb==0,1,0))
+
+#sum the number of respondents who got items g+2 and g+1 correct and items g and g-1 incorrect
+sum(ifelse(ToM.gutt$contentsfb==1&ToM.gutt$diversebelief==1&ToM.gutt$knowaccess==0&ToM.gutt$diversedesire==0,1,0))
+sum(ifelse(ToM.gutt$realappemotion.rescored==1&ToM.gutt$contentsfb==1&ToM.gutt$diversebelief==0&ToM.gutt$knowaccess==0,1,0))
+
+#sum the number of respondents who got item g+2 correct and g incorrect, where g = 2,...,k-2
+sum(ifelse(ToM.gutt$diversebelief==1&ToM.gutt$diversedesire==0,1,0))
+sum(ifelse(ToM.gutt$contentsfb==1&ToM.gutt$knowaccess==0,1,0))
+sum(ifelse(ToM.gutt$realappemotion.rescored==1&ToM.gutt$diversebelief==0,1,0))
+
+Rep_A = 1 - (1/(260*5))*(28+35+19+28) - (1/(260*5))*(0*1)
+Rep_B = 1 - (1/(260*5))*(28+35+19+28) - (1/((260^2)*5))*((5*15)+(14*5))
+
+se.Rep_A = sqrt(((1-Rep_A)*(Rep_A))/(260*5))
+se.Rep_B = sqrt(((1-Rep_B)*(Rep_B))/(260*5))
+
+#green's index of consistency
+
+Rep_I = 1 - (1/((260^2)*5)) * ((204*46)+(165*56)+(63*95)+(49*197)) - (1/((260^4)*5)) * ((63*165*56*46)+(49*63*95*56))
+
+I_A = (Rep_B-Rep_I)/(1-Rep_I)
+I_B = (Rep_A-Rep_I)/(1-Rep_I)
 ```
 
+$Rep_B = 1 - \frac{1}{Nk} \sum{k-1}{g=1} n_{g+1,\bar{g}}$
 
 ```{r iita}
 #Inductive item tree analysis
@@ -223,8 +255,18 @@ pat = pattern(ToM.scale, n = 10)
 #adding up all kids that fit into the potential orders
 (9+11+21+33+71+23+14)/length(ToM.scale$diversedesire)
 
-(9+11+33+71+23+14)/length(ToM.scale$diversedesire) #knowaccessfirst
 (9+11+21+71+23+14)/length(ToM.scale$diversedesire) #knowaccesssecond
+
+pat
+#All wrong 9
+#One right 11
+#Two right 33
+#Three right 71
+#Four right 23
+#Five right 14
+
+(9+11+33+71+23+14)/length(ToM.scale$diversedesire) #knowaccessfirst
+
 
 #sum(pat$response.patterns)
 #sum(pat$response.patterns)/length(ToM.scale$diversedesire)
@@ -306,17 +348,4 @@ ToM.rt <- subset(ToM.rt, rowMeans(resp, na.rm = TRUE) > 0 & rowMeans(resp, na.rm
 
 rt <- raschtree(resp~numofoldpeop+age, data = ToM.rt)
 plot(rt)
-```
-
-```{r 1d_rasch}
-#As we talked last time, I’d like to see the measures of fit for the 1 dimensional Rasch. Should be both measures of Infit and Outfit.  (You can see the original Wellman & Liu 2004 to see what I’m hoping for.)
-
-library(eRm)
-rasch.mod = RM(ToM.scale)
-
-library(mirt)
-rasch.mod = mirt(ToM.scale, 1)
-summary(rasch.mod)
-coef(rasch.mod)
-itemfit(rasch.mod)
 ```
